@@ -19,8 +19,8 @@ async function fetchAllFeedsData() {
   const ytPromises = youtube.map(async (f) => {
     let bridgePath = '';
     if (f.url.includes('@')) {
-       const match = f.url.match(/@([a-zA-Z0-9_\-]+)/);
-       if (match) bridgePath = `?action=display&bridge=Youtube&context=By+custom+name&custom=${match[1]}&format=Json`;
+       const match = f.url.match(/@([a-zA-Z0-9_\-\.]+)/);
+       if (match) bridgePath = `?action=display&bridge=Youtube&context=By+custom+name&custom=%40${match[1]}&format=Json`;
     } else if (f.url.includes('channel/')) {
        const match = f.url.match(/channel\/([a-zA-Z0-9_\-]+)/);
        if (match) bridgePath = `?action=display&bridge=Youtube&context=By+channel+id&c=${match[1]}&format=Json`;

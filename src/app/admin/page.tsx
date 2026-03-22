@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { feeds } from '../db/schema';
+import { db } from '../../db';
+import { feeds } from '../../db/schema';
 import { addFeed, deleteFeed } from '../actions/feeds';
 import { Trash2, Plus, LogOut } from 'lucide-react';
 import { logout } from '../actions/auth';
@@ -8,8 +8,9 @@ import { redirect } from 'next/navigation';
 export default async function AdminPage() {
   const allFeeds = await db.select().from(feeds);
 
-  const xLists = allFeeds.filter(f => f.type === 'x_list');
-  const youtubeChannels = allFeeds.filter(f => f.type === 'youtube');
+  type Feed = typeof allFeeds[0];
+  const xLists = allFeeds.filter((f: Feed) => f.type === 'x_list');
+  const youtubeChannels = allFeeds.filter((f: Feed) => f.type === 'youtube');
 
   async function handleLogout() {
     'use server';
@@ -33,7 +34,7 @@ export default async function AdminPage() {
         {/* Add Feed Form */}
         <div className="bg-[#1C1C1E] p-6 rounded-2xl mb-12 border border-neutral-800">
           <h2 className="text-xl font-medium mb-6">Add New Source</h2>
-          <form action={addFeed} className="flex flex-col sm:flex-row gap-4">
+          <form action={async (f: FormData) => { 'use server'; await addFeed(f); }} className="flex flex-col sm:flex-row gap-4">
             <select name="type" className="bg-black border border-neutral-700 rounded-lg p-3 text-sm focus:outline-none focus:border-neutral-500 transition-colors">
               <option value="youtube">YouTube Channel</option>
               <option value="x_list">X (Twitter) List</option>
@@ -69,7 +70,7 @@ export default async function AdminPage() {
               YouTube Subscriptions <span className="ml-3 bg-neutral-800 text-xs py-0.5 px-2 rounded-full">{youtubeChannels.length}</span>
             </h3>
             <ul className="space-y-3">
-              {youtubeChannels.map((feed) => (
+              {youtubeChannels.map((feed: Feed) => (
                 <li key={feed.id} className="group flex justify-between items-center bg-[#1C1C1E] p-4 rounded-xl border border-neutral-800 hover:border-neutral-700 transition-colors">
                   <div className="truncate pr-4">
                     <p className="font-medium text-sm text-white truncate">{feed.name}</p>
@@ -93,7 +94,7 @@ export default async function AdminPage() {
               X (Twitter) Lists <span className="ml-3 bg-neutral-800 text-xs py-0.5 px-2 rounded-full">{xLists.length}</span>
             </h3>
             <ul className="space-y-3">
-              {xLists.map((feed) => (
+              {xLists.map((feed: Feed) => (
                 <li key={feed.id} className="group flex justify-between items-center bg-[#1C1C1E] p-4 rounded-xl border border-neutral-800 hover:border-neutral-700 transition-colors">
                   <div className="truncate pr-4">
                     <p className="font-medium text-sm text-white truncate">{feed.name}</p>

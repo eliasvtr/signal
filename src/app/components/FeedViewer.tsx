@@ -104,7 +104,7 @@ export default function FeedViewer({
       </div>
 
       {/* Content Rendering */}
-      <div className="mt-8 space-y-10 pb-24">
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 pb-24 items-start">
         {/* YOUTUBE RENDERER */}
         {activeTab === 'youtube' && youtube.filter(item => !optimisticSeen.includes(item.url)).map((item) => {
           const ytId = extractYTId(item.url);

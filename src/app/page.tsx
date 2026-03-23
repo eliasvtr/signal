@@ -17,20 +17,27 @@ async function fetchAllFeedsData() {
 
   // Fetch all youtube feeds
   const ytPromises = youtube.map(async (f) => {
-    let bridgePath = '';
-    if (f.url.includes('@')) {
-       const match = f.url.match(/@([a-zA-Z0-9_\-\.]+)/);
-       if (match) bridgePath = `?action=display&bridge=Youtube&context=By+custom+name&custom=%40${match[1]}&format=Json`;
-    } else if (f.url.includes('channel/')) {
-       const match = f.url.match(/channel\/([a-zA-Z0-9_\-]+)/);
-       if (match) bridgePath = `?action=display&bridge=Youtube&context=By+channel+id&c=${match[1]}&format=Json`;
+    let fetchUrl = `${BRIDGE_URL}`;
+    
+    if (f.url.startsWith('http') && !f.url.includes('youtube.com/') && !f.url.includes('youtu.be/')) {
+      fetchUrl = f.url; // Absolute feed URL (e.g., RSS.app)
     } else {
-       const match = f.url.split('/').pop();
-       bridgePath = `?action=display&bridge=Youtube&context=By+username&u=${match}&format=Json`;
+      let bridgePath = '';
+      if (f.url.includes('@')) {
+         const match = f.url.match(/@([a-zA-Z0-9_\-\.]+)/);
+         if (match) bridgePath = `?action=display&bridge=Youtube&context=By+custom+name&custom=%40${match[1]}&format=Json`;
+      } else if (f.url.includes('channel/')) {
+         const match = f.url.match(/channel\/([a-zA-Z0-9_\-]+)/);
+         if (match) bridgePath = `?action=display&bridge=Youtube&context=By+channel+id&c=${match[1]}&format=Json`;
+      } else {
+         const match = f.url.split('/').pop();
+         bridgePath = `?action=display&bridge=Youtube&context=By+username&u=${match}&format=Json`;
+      }
+      fetchUrl = `${BRIDGE_URL}${bridgePath}`;
     }
 
     try {
-      const res = await fetch(`${BRIDGE_URL}${bridgePath}`, { next: { revalidate: 3600 } });
+      const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
       const data = await res.json();
       return (data.items || []).map((i: any) => ({ ...i, __source: f.name, __sourceType: 'youtube' }));
     } catch { return []; }
@@ -38,13 +45,20 @@ async function fetchAllFeedsData() {
 
   // Fetch all X lists
   const xPromises = xLists.map(async (f) => {
-    let bridgePath = '';
-    const match = f.url.match(/lists\/(\d+)/);
-    const listId = match ? match[1] : f.url.split('/').pop();
-    bridgePath = `?action=display&bridge=Twitter&context=By+list+ID&listid=${listId}&format=Json`;
+    let fetchUrl = `${BRIDGE_URL}`;
+
+    if (f.url.startsWith('http') && !f.url.includes('twitter.com') && !f.url.includes('x.com')) {
+      fetchUrl = f.url; // Absolute feed URL (e.g., RSS.app)
+    } else {
+      let bridgePath = '';
+      const match = f.url.match(/lists\/(\d+)/);
+      const listId = match ? match[1] : f.url.split('/').pop();
+      bridgePath = `?action=display&bridge=Twitter&context=By+list+ID&listid=${listId}&format=Json`;
+      fetchUrl = `${BRIDGE_URL}${bridgePath}`;
+    }
 
     try {
-      const res = await fetch(`${BRIDGE_URL}${bridgePath}`, { next: { revalidate: 3600 } });
+      const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
       const data = await res.json();
       return (data.items || []).map((i: any) => ({ ...i, __source: f.name, __sourceType: 'x_list' }));
     } catch { return []; }

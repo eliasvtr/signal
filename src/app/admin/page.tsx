@@ -58,8 +58,8 @@ export default async function AdminPage() {
             </button>
           </form>
           <p className="text-xs text-neutral-500 mt-4 leading-relaxed">
-            * For **YouTube**, copy the URL of the channel (e.g. `https://www.youtube.com/@mkbhd`).<br/>
-            * For **X Lists**, copy the URL of the public list (e.g. `https://x.com/i/lists/123456789`).
+            * For **YouTube**, copy the channel URL or use an RSS.App feed Link.<br/>
+            * For **X Lists**, paste your **RSS.App JSON Feed** URL (e.g. `https://rss.app/feeds/xyz.json`).
           </p>
         </div>
 

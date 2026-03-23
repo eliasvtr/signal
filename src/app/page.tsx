@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { db } from '../db';
-import { feeds } from '../db/schema';
+import { feeds, seenItems } from '../db/schema';
 import { Settings } from 'lucide-react';
 import FeedViewer from './components/FeedViewer';
 import Script from 'next/script';
@@ -10,6 +10,8 @@ const BRIDGE_URL = process.env.RSS_BRIDGE_URL || 'https://rss-bridge-production-
 
 async function fetchAllFeedsData() {
   const allFeeds = await db.select().from(feeds);
+  const seen = await db.select().from(seenItems);
+  const seenUrls = seen.map(s => s.itemUrl);
   
   const [youtube, xLists] = [
     allFeeds.filter(f => f.type === 'youtube'),
@@ -40,7 +42,9 @@ async function fetchAllFeedsData() {
     try {
       const res = await fetch(fetchUrl, { next: { revalidate: 0 } });
       const data = await res.json();
-      return (data.items || []).map((i: any) => ({ ...i, __source: f.name, __sourceType: 'youtube' }));
+      return (data.items || [])
+        .filter((i: any) => !seenUrls.includes(i.url))
+        .map((i: any) => ({ ...i, __source: f.name, __sourceType: 'youtube' }));
     } catch { return []; }
   });
 
@@ -61,7 +65,9 @@ async function fetchAllFeedsData() {
     try {
       const res = await fetch(fetchUrl, { next: { revalidate: 0 } });
       const data = await res.json();
-      return (data.items || []).map((i: any) => ({ ...i, __source: f.name, __sourceType: 'x_list' }));
+      return (data.items || [])
+        .filter((i: any) => !seenUrls.includes(i.url))
+        .map((i: any) => ({ ...i, __source: f.name, __sourceType: 'x_list' }));
     } catch { return []; }
   });
 

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus, Maximize2, X } from 'lucide-react';
+import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus, Maximize2, X, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { markAsSeen } from '../actions/feeds';
 import Script from 'next/script';
 
 type FeedItem = {
@@ -29,6 +30,7 @@ export default function FeedViewer({
 }) {
   const [activeTab, setActiveTab] = useState('youtube');
   const [activeTweet, setActiveTweet] = useState<FeedItem | null>(null);
+  const [optimisticSeen, setOptimisticSeen] = useState<string[]>([]);
 
   useEffect(() => {
     if (activeTweet && typeof window !== 'undefined' && (window as any).twttr) {
@@ -36,6 +38,11 @@ export default function FeedViewer({
       (window as any).twttr.widgets.load();
     }
   }, [activeTweet]);
+
+  function handleMarkAsSeen(url: string) {
+    setOptimisticSeen((prev) => [...prev, url]);
+    markAsSeen(url); // Trigger Server Action in back background
+  }
 
   function saveToRaindrop(url: string, title: string) {
     // This will open Raindrop's add URL API hook or standard intent
@@ -93,7 +100,7 @@ export default function FeedViewer({
       {/* Content Rendering */}
       <div className="mt-8 space-y-10 pb-24">
         {/* YOUTUBE RENDERER */}
-        {activeTab === 'youtube' && youtube.map((item) => (
+        {activeTab === 'youtube' && youtube.filter(item => !optimisticSeen.includes(item.url)).map((item) => (
           <article key={item.id} className="group">
             <a href={item.url} target="_blank" rel="noreferrer" className="block relative aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800">
               {extractYTImage(item) ? (
@@ -114,16 +121,19 @@ export default function FeedViewer({
                 </div>
               </div>
             </a>
-            <div className="flex justify-end mt-3">
-              <button onClick={() => saveToRaindrop(item.url, item.title)} className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 rounded-lg hover:bg-neutral-900">
-                 <BookmarkPlus className="w-4 h-4 mr-1.5" /> Save to Raindrop
+            <div className="flex justify-between items-center mt-3">
+              <button onClick={() => handleMarkAsSeen(item.url)} className="text-neutral-500 hover:text-green-500 flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">
+                 <CheckCircle2 className="w-4 h-4 mr-1.5" /> Mark Seen
+              </button>
+              <button onClick={() => saveToRaindrop(item.url, item.title)} className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900">
+                 <BookmarkPlus className="w-4 h-4 mr-1.5" /> Raindrop
               </button>
             </div>
           </article>
         ))}
 
         {/* X LIST RENDERER */}
-        {activeTab !== 'youtube' && xLists.find(l => l.name === activeTab)?.items.map((item) => (
+        {activeTab !== 'youtube' && (xLists.find(l => l.name === activeTab)?.items || []).filter(item => !optimisticSeen.includes(item.url)).map((item) => (
           <article key={item.id} className="border border-neutral-800 bg-[#0A0A0A] rounded-2xl p-5 hover:border-neutral-700 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -162,9 +172,9 @@ export default function FeedViewer({
 
             <div className="flex justify-between items-center mt-6 pt-4 border-t border-neutral-800/50">
               <div className="flex items-center gap-1">
-                <a href={item.url} target="_blank" rel="noreferrer" className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">
-                   <ExternalLink className="w-4 h-4 mr-1.5" /> View on X
-                </a>
+                <button onClick={() => handleMarkAsSeen(item.url)} className="text-neutral-500 hover:text-green-500 flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">
+                   <CheckCircle2 className="w-4 h-4 mr-1.5" /> Mark Seen
+                </button>
                 <button onClick={() => setActiveTweet(item)} className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 rounded-lg hover:bg-neutral-900">
                    <Maximize2 className="w-4 h-4 mr-1.5" /> Expand Layout
                 </button>

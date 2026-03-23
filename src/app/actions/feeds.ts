@@ -1,9 +1,19 @@
 'use server';
 
 import { db } from '../../db';
-import { feeds } from '../../db/schema';
+import { feeds, seenItems } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+
+export async function markAsSeen(itemUrl: string) {
+  try {
+    await db.insert(seenItems).values({ itemUrl }).onConflictDoNothing();
+    revalidatePath('/');
+    return { success: true };
+  } catch {
+    return { error: 'Failed to mark as seen' };
+  }
+}
 
 export async function addFeed(formData: FormData) {
   const name = formData.get('name') as string;

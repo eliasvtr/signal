@@ -17,8 +17,7 @@ export async function saveToRaindropAction(url: string, title?: string) {
       },
       body: JSON.stringify({
         link: url,
-        title: title || 'Saved item from Signal',
-        pleaseParse: true // Tells Raindrop to fetch metadata/tags for the link
+        title: title || 'Saved item from Signal'
       }),
     });
 

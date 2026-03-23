@@ -31,6 +31,7 @@ export default function FeedViewer({
   const [activeTab, setActiveTab] = useState('youtube');
   const [activeTweet, setActiveTweet] = useState<FeedItem | null>(null);
   const [optimisticSeen, setOptimisticSeen] = useState<string[]>([]);
+  const [playingYtVideo, setPlayingYtVideo] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTweet && typeof window !== 'undefined' && (window as any).twttr) {
@@ -72,6 +73,11 @@ export default function FeedViewer({
     return null;
   }
 
+  function extractYTId(url: string) {
+    const match = url.match(/(?:v=|youtu\.be\/|\/v\/|\/embed\/)([^&\n?#]+)/);
+    return match ? match[1] : null;
+  }
+
   return (
     <div className="w-full">
       <Script src="https://platform.twitter.com/widgets.js" strategy="afterInteractive" />
@@ -100,27 +106,46 @@ export default function FeedViewer({
       {/* Content Rendering */}
       <div className="mt-8 space-y-10 pb-24">
         {/* YOUTUBE RENDERER */}
-        {activeTab === 'youtube' && youtube.filter(item => !optimisticSeen.includes(item.url)).map((item) => (
-          <article key={item.id} className="group">
-            <a href={item.url} target="_blank" rel="noreferrer" className="block relative aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800">
-              {extractYTImage(item) ? (
-                <img src={extractYTImage(item)!} alt={item.title} className="object-cover w-full h-full opacity-90 group-hover:opacity-100 transition-opacity" />
-              ) : (
-                 <div className="w-full h-full flex items-center justify-center text-neutral-600">
-                   <PlayCircle className="w-12 h-12 opacity-50" />
-                 </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-                <div>
-                  <h2 className="text-white font-medium text-lg leading-tight line-clamp-2">{item.title}</h2>
-                  <p className="text-neutral-300 flex items-center gap-2 mt-1.5 text-xs font-medium">
-                    {item.__source} <span className="w-1 h-1 rounded-full bg-neutral-500" /> 
-                    {item.date_published ? formatDistanceToNow(new Date(item.date_published)) + ' ago' : ''}
-                  </p>
+        {activeTab === 'youtube' && youtube.filter(item => !optimisticSeen.includes(item.url)).map((item) => {
+          const ytId = extractYTId(item.url);
+          return (
+            <article key={item.id} className="group">
+              {playingYtVideo === item.id && ytId ? (
+                <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-neutral-800 shadow-lg">
+                  <iframe 
+                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1`} 
+                    className="absolute inset-0 w-full h-full" 
+                    allow="autoplay; encrypted-media" 
+                    allowFullScreen
+                  />
                 </div>
-              </div>
-            </a>
+              ) : (
+                <button 
+                  onClick={() => setPlayingYtVideo(item.id)} 
+                  className="block text-left w-full relative aspect-video rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 group"
+                >
+                  {extractYTImage(item) ? (
+                    <img src={extractYTImage(item)!} alt={item.title} className="object-cover w-full h-full opacity-80 group-hover:opacity-95 transition-opacity" />
+                  ) : (
+                     <div className="w-full h-full flex items-center justify-center text-neutral-600">
+                       <PlayCircle className="w-12 h-12 opacity-50" />
+                     </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                    <div>
+                      <h2 className="text-white font-medium text-lg leading-tight line-clamp-2">{item.title}</h2>
+                      <p className="text-neutral-300 flex items-center gap-2 mt-1.5 text-xs font-medium">
+                        {item.__source} <span className="w-1 h-1 rounded-full bg-neutral-500" /> 
+                        {item.date_published ? formatDistanceToNow(new Date(item.date_published)) + ' ago' : ''}
+                      </p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-full p-3 border border-white/10 opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all shadow-xl">
+                      <PlayCircle className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </button>
+              )}
             <div className="flex justify-between items-center mt-3">
               <button onClick={() => handleMarkAsSeen(item.url)} className="text-neutral-500 hover:text-green-500 flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">
                  <CheckCircle2 className="w-4 h-4 mr-1.5" /> Mark Seen
@@ -130,7 +155,7 @@ export default function FeedViewer({
               </button>
             </div>
           </article>
-        ))}
+        ); })}
 
         {/* X LIST RENDERER */}
         {activeTab !== 'youtube' && (xLists.find(l => l.name === activeTab)?.items || []).filter(item => !optimisticSeen.includes(item.url)).map((item) => (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus, Maximize2, X, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { markAsSeen } from '../actions/feeds';
+import { saveToRaindropAction } from '../actions/raindrop';
 import Script from 'next/script';
 
 type FeedItem = {
@@ -32,6 +33,8 @@ export default function FeedViewer({
   const [activeTweet, setActiveTweet] = useState<FeedItem | null>(null);
   const [optimisticSeen, setOptimisticSeen] = useState<string[]>([]);
   const [playingYtVideo, setPlayingYtVideo] = useState<string | null>(null);
+  const [savingItemUrl, setSavingItemUrl] = useState<string | null>(null);
+  const [savedItems, setSavedItems] = useState<string[]>([]);
 
   useEffect(() => {
     if (activeTweet && typeof window !== 'undefined' && (window as any).twttr) {
@@ -45,11 +48,29 @@ export default function FeedViewer({
     markAsSeen(url); // Trigger Server Action in back background
   }
 
-  function saveToRaindrop(url: string, title: string) {
-    // This will open Raindrop's add URL API hook or standard intent
-    // Raindrop has a cool intent feature: https://app.raindrop.io/add?link=...
-    const raindropUrl = `https://app.raindrop.io/add?link=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
-    window.open(raindropUrl, '_blank');
+  async function saveToRaindrop(url: string, title: string) {
+    if (savingItemUrl === url || savedItems.includes(url)) return;
+    setSavingItemUrl(url);
+    try {
+      const res = await saveToRaindropAction(url, title);
+      const err = (res as any).error;
+      
+      if (err) {
+        // Fallback condition if API Access Token hasn't been posted yet
+        if (err.includes('not configured')) {
+          const raindropUrl = `https://app.raindrop.io/add?link=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+          window.open(raindropUrl, '_blank');
+        } else {
+          alert(`Raindrop Error: ${err}`);
+        }
+      } else {
+        setSavedItems((prev) => [...prev, url]);
+      }
+    } catch {
+      alert('Failed to save link to Raindrop.');
+    } finally {
+      setSavingItemUrl(null);
+    }
   }
 
   function extractAuthorName(item: FeedItem) {
@@ -151,8 +172,13 @@ export default function FeedViewer({
               <button onClick={() => handleMarkAsSeen(item.url)} className="text-neutral-500 hover:text-green-500 flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">
                  <CheckCircle2 className="w-4 h-4 mr-1.5" /> Mark Seen
               </button>
-              <button onClick={() => saveToRaindrop(item.url, item.title)} className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900">
-                 <BookmarkPlus className="w-4 h-4 mr-1.5" /> Raindrop
+              <button 
+                onClick={() => saveToRaindrop(item.url, item.title)} 
+                disabled={savingItemUrl === item.url || savedItems.includes(item.url)}
+                className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900 disabled:text-green-500"
+              >
+                 <BookmarkPlus className="w-4 h-4 mr-1.5" /> 
+                 {savingItemUrl === item.url ? 'Saving...' : savedItems.includes(item.url) ? 'Saved!' : 'Raindrop'}
               </button>
             </div>
           </article>
@@ -205,8 +231,13 @@ export default function FeedViewer({
                    <Maximize2 className="w-4 h-4 mr-1.5" /> Expand Layout
                 </button>
               </div>
-              <button onClick={() => saveToRaindrop(item.url, item.author?.name ? `Tweet by ${item.author.name}` : 'Saved Tweet')} className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900">
-                 <BookmarkPlus className="w-4 h-4 mr-1.5" /> Raindrop
+              <button 
+                onClick={() => saveToRaindrop(item.url, item.author?.name ? `Tweet by @${item.author.name}` : 'Saved Tweet')} 
+                disabled={savingItemUrl === item.url || savedItems.includes(item.url)}
+                className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900 disabled:text-green-500"
+              >
+                 <BookmarkPlus className="w-4 h-4 mr-1.5" /> 
+                 {savingItemUrl === item.url ? 'Saving...' : savedItems.includes(item.url) ? 'Saved!' : 'Raindrop'}
               </button>
             </div>
           </article>

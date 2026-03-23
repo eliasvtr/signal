@@ -136,7 +136,7 @@ export default function FeedViewer({
             {item.attachments && item.attachments.length > 0 && (
               <div className="mt-4 space-y-3">
                 {item.attachments.map((attach: any, idx: number) => (
-                  attach.mime_type?.startsWith('image/') || attach.url?.includes('pbs.twimg.com') ? (
+                  (attach.mime_type?.startsWith('image/') || attach.url?.includes('pbs.twimg.com')) && attach.url !== item.image ? (
                     <img key={idx} src={attach.url} alt={`Media ${idx}`} className="rounded-xl border border-neutral-800 max-w-full h-auto" />
                   ) : null
                 ))}

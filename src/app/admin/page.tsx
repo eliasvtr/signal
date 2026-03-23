@@ -1,9 +1,10 @@
 import { db } from '../../db';
 import { feeds } from '../../db/schema';
 import { addFeed, deleteFeed } from '../actions/feeds';
-import { Trash2, Plus, LogOut } from 'lucide-react';
+import { Trash2, Plus, LogOut, ArrowLeft } from 'lucide-react';
 import { logout } from '../actions/auth';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 export default async function AdminPage() {
   const allFeeds = await db.select().from(feeds);
@@ -22,7 +23,12 @@ export default async function AdminPage() {
     <div className="min-h-[100dvh] bg-black text-white p-6 sm:p-12 font-sans selection:bg-neutral-800">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-12">
-          <h1 className="text-3xl font-light tracking-wide">Data Sources</h1>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-neutral-500 hover:text-white transition-colors bg-neutral-900 border border-neutral-800 p-2 rounded-full hover:bg-neutral-800">
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-light tracking-wide">Data Sources</h1>
+          </div>
           <form action={handleLogout}>
             <button className="flex items-center text-sm text-neutral-400 hover:text-white transition-colors">
               <LogOut className="w-4 h-4 mr-2" />

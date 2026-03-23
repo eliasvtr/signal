@@ -144,7 +144,7 @@ export default function FeedViewer({
             
             <div 
               className="text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap break-words [&>a]:text-blue-400 [&>img]:mt-4 [&>img]:rounded-xl [&>img]:border [&>img]:border-neutral-800"
-              dangerouslySetInnerHTML={{ __html: cleanContentHtml(item.content_html || item.title) }} 
+              dangerouslySetInnerHTML={{ __html: item.content_html || item.title }} 
             />
 
             {/* Render direct Images from Feed Item Nodes (common with RSS.app) */}

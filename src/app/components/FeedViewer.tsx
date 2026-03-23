@@ -10,6 +10,7 @@ type FeedItem = {
   url: string;
   date_published: string;
   content_html?: string;
+  content_text?: string;
   author?: { name: string };
   authors?: { name: string }[];
   __source: string;
@@ -32,6 +33,14 @@ export default function FeedViewer({
     // Raindrop has a cool intent feature: https://app.raindrop.io/add?link=...
     const raindropUrl = `https://app.raindrop.io/add?link=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
     window.open(raindropUrl, '_blank');
+  }
+
+  function extractAuthorName(item: FeedItem) {
+    if (item.content_text) {
+       const match = item.content_text.match(/— ([^(@\n]+) \(@/);
+       if (match) return match[1].trim();
+    }
+    return item.authors?.[0]?.name || item.author?.name || 'X User';
   }
 
   // Parse Youtube Video ID from URL for iframe thumbnail embedding
@@ -103,7 +112,7 @@ export default function FeedViewer({
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-neutral-500" />
                 <span className="font-medium text-sm text-neutral-300">
-                  {item.authors?.[0]?.name || item.author?.name || 'X User'}
+                  {extractAuthorName(item)}
                 </span>
               </div>
               <span className="text-xs text-neutral-500">

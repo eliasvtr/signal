@@ -82,29 +82,30 @@ export default function FeedViewer({
     <div className="w-full">
       <Script src="https://platform.twitter.com/widgets.js" strategy="afterInteractive" />
 
-      {/* Scrollable Tabs */}
-      <div className="flex overflow-x-auto gap-3 pb-6 border-b border-neutral-800 scrollbar-hide">
-        <button 
-          onClick={() => setActiveTab('youtube')}
-          className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors border
-            ${activeTab === 'youtube' ? 'bg-white text-black border-white' : 'bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600'}`}
-        >
-          YouTube Timeline
-        </button>
-        {xLists.map((list) => (
-          <button
-            key={list.name}
-            onClick={() => setActiveTab(list.name)}
+      <div className="flex flex-col md:flex-row gap-8 items-start w-full">
+        {/* Scrollable Tabs / Sidebar */}
+        <div className="w-full md:w-56 flex overflow-x-auto md:flex-col gap-2.5 pb-6 md:pb-0 border-b md:border-b-0 md:border-r border-neutral-800 sticky md:top-12 self-start md:pr-6 scrollbar-hide">
+          <button 
+            onClick={() => setActiveTab('youtube')}
             className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors border
-              ${activeTab === list.name ? 'bg-white text-black border-white' : 'bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600'}`}
+              ${activeTab === 'youtube' ? 'bg-white text-black border-white' : 'bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600'}`}
           >
-            {list.name}
+            YouTube Timeline
           </button>
-        ))}
-      </div>
+          {xLists.map((list) => (
+            <button
+              key={list.name}
+              onClick={() => setActiveTab(list.name)}
+              className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors border
+                ${activeTab === list.name ? 'bg-white text-black border-white' : 'bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600'}`}
+            >
+              {list.name}
+            </button>
+          ))}
+        </div>
 
-      {/* Content Rendering */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 pb-24 items-start">
+        {/* Content Rendering */}
+        <div className="flex-1 space-y-8 pb-24 w-full">
         {/* YOUTUBE RENDERER */}
         {activeTab === 'youtube' && youtube.filter(item => !optimisticSeen.includes(item.url)).map((item) => {
           const ytId = extractYTId(item.url);
@@ -218,6 +219,7 @@ export default function FeedViewer({
         {activeTab !== 'youtube' && xLists.find(l => l.name === activeTab)?.items.length === 0 && (
            <p className="text-center text-neutral-500 italic py-12">No recent posts matched on RSS.</p>
         )}
+      </div>
       </div>
 
       {/* Pop-up Interactive Embed Modal */}

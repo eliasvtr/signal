@@ -52,8 +52,8 @@ export default function FeedViewer({
 
   function cleanContentHtml(html: string) {
     if (!html) return '';
-    // Strip Twitter embed footers inserted by RSS parsers
-    return html.replace(/<\/p>— ([\s\S]*?)<\/blockquote>/, '</p></blockquote>');
+    // Inject dark theme to Twitter cards so they blend with our app
+    return html.replace('class="twitter-tweet"', 'class="twitter-tweet" data-theme="dark"');
   }
 
   // Parse Youtube Video ID from URL for iframe thumbnail embedding
@@ -144,26 +144,8 @@ export default function FeedViewer({
             
             <div 
               className="text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap break-words [&>a]:text-blue-400 [&>img]:mt-4 [&>img]:rounded-xl [&>img]:border [&>img]:border-neutral-800"
-              dangerouslySetInnerHTML={{ __html: item.content_html || item.title }} 
+              dangerouslySetInnerHTML={{ __html: cleanContentHtml(item.content_html || item.title) }} 
             />
-
-            {/* Render direct Images from Feed Item Nodes (common with RSS.app) */}
-            {item.image && (
-              <div className="mt-4">
-                <img src={item.image} alt={item.title} className="rounded-xl border border-neutral-800 max-w-full h-auto object-cover" />
-              </div>
-            )}
-
-            {/* Render Attachments/Media Enclosures */}
-            {item.attachments && item.attachments.length > 0 && (
-              <div className="mt-4 space-y-3">
-                {item.attachments.map((attach: any, idx: number) => (
-                  (attach.mime_type?.startsWith('image/') || attach.url?.includes('pbs.twimg.com')) && attach.url !== item.image ? (
-                    <img key={idx} src={attach.url} alt={`Media ${idx}`} className="rounded-xl border border-neutral-800 max-w-full h-auto" />
-                  ) : null
-                ))}
-              </div>
-            )}
 
             <div className="flex justify-between items-center mt-6 pt-4 border-t border-neutral-800/50">
               <a href={item.url} target="_blank" rel="noreferrer" className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">

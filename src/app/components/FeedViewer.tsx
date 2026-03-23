@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import Script from 'next/script';
 
 type FeedItem = {
   id: string;
@@ -29,12 +28,6 @@ export default function FeedViewer({
 }) {
   const [activeTab, setActiveTab] = useState('youtube');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).twttr) {
-      (window as any).twttr.widgets.load();
-    }
-  }, [activeTab, xLists]);
-
   function saveToRaindrop(url: string, title: string) {
     // This will open Raindrop's add URL API hook or standard intent
     // Raindrop has a cool intent feature: https://app.raindrop.io/add?link=...
@@ -52,8 +45,8 @@ export default function FeedViewer({
 
   function cleanContentHtml(html: string) {
     if (!html) return '';
-    // Inject dark theme to Twitter cards so they blend with our app
-    return html.replace('class="twitter-tweet"', 'class="twitter-tweet" data-theme="dark"');
+    // Strip Twitter embed footers inserted by RSS parsers
+    return html.replace(/<\/p>— ([\s\S]*?)<\/blockquote>/, '</p></blockquote>');
   }
 
   // Parse Youtube Video ID from URL for iframe thumbnail embedding
@@ -65,15 +58,6 @@ export default function FeedViewer({
 
   return (
     <div className="w-full">
-      <Script 
-        src="https://platform.twitter.com/widgets.js" 
-        strategy="afterInteractive" 
-        onLoad={() => {
-          if (typeof window !== 'undefined' && (window as any).twttr) {
-            (window as any).twttr.widgets.load();
-          }
-        }}
-      />
       {/* Scrollable Tabs */}
       <div className="flex overflow-x-auto gap-3 pb-6 border-b border-neutral-800 scrollbar-hide">
         <button 
@@ -146,6 +130,24 @@ export default function FeedViewer({
               className="text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap break-words [&>a]:text-blue-400 [&>img]:mt-4 [&>img]:rounded-xl [&>img]:border [&>img]:border-neutral-800"
               dangerouslySetInnerHTML={{ __html: cleanContentHtml(item.content_html || item.title) }} 
             />
+
+            {/* Render direct Images from Feed Item Nodes (common with RSS.app) */}
+            {item.image && (
+              <div className="mt-4">
+                <img src={item.image} alt={item.title} className="rounded-xl border border-neutral-800 max-w-full h-auto object-cover" />
+              </div>
+            )}
+
+            {/* Render Attachments/Media Enclosures */}
+            {item.attachments && item.attachments.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {item.attachments.map((attach: any, idx: number) => (
+                  (attach.mime_type?.startsWith('image/') || attach.url?.includes('pbs.twimg.com')) && attach.url !== item.image ? (
+                    <img key={idx} src={attach.url} alt={`Media ${idx}`} className="rounded-xl border border-neutral-800 max-w-full h-auto" />
+                  ) : null
+                ))}
+              </div>
+            )}
 
             <div className="flex justify-between items-center mt-6 pt-4 border-t border-neutral-800/50">
               <a href={item.url} target="_blank" rel="noreferrer" className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">

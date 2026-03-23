@@ -232,7 +232,7 @@ export default function FeedViewer({
                 </button>
               </div>
               <button 
-                onClick={() => saveToRaindrop(item.url, item.author?.name ? `Tweet by @${item.author.name}` : 'Saved Tweet')} 
+                onClick={() => saveToRaindrop(item.url, `X Post by ${extractAuthorName(item)}: ${item.title}`)} 
                 disabled={savingItemUrl === item.url || savedItems.includes(item.url)}
                 className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900 disabled:text-green-500"
               >

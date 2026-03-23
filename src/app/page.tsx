@@ -37,7 +37,7 @@ async function fetchAllFeedsData() {
     }
 
     try {
-      const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
+      const res = await fetch(fetchUrl, { next: { revalidate: 0 } });
       const data = await res.json();
       return (data.items || []).map((i: any) => ({ ...i, __source: f.name, __sourceType: 'youtube' }));
     } catch { return []; }
@@ -58,7 +58,7 @@ async function fetchAllFeedsData() {
     }
 
     try {
-      const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
+      const res = await fetch(fetchUrl, { next: { revalidate: 0 } });
       const data = await res.json();
       return (data.items || []).map((i: any) => ({ ...i, __source: f.name, __sourceType: 'x_list' }));
     } catch { return []; }

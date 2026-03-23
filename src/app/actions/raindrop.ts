@@ -25,7 +25,12 @@ export async function saveToRaindropAction(url: string, title?: string) {
     if (!res.ok) {
       const errText = await res.text();
       console.error("Raindrop API Failure:", errText);
-      return { error: 'Failed to save to Raindrop' };
+      try {
+         const errJson = JSON.parse(errText);
+         return { error: errJson.errorMessage || errJson.message || `API Error: ${res.status}` };
+      } catch {
+         return { error: `Raindrop API Error (${res.status}): ${errText.slice(0, 100)}` };
+      }
     }
 
     return { success: true };

@@ -11,6 +11,7 @@ type FeedItem = {
   date_published: string;
   content_html?: string;
   author?: { name: string };
+  authors?: { name: string }[];
   __source: string;
   __sourceType: string;
   image?: string;
@@ -101,7 +102,9 @@ export default function FeedViewer({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-neutral-500" />
-                <span className="font-medium text-sm text-neutral-300">{item.author?.name || 'X User'}</span>
+                <span className="font-medium text-sm text-neutral-300">
+                  {item.authors?.[0]?.name || item.author?.name || 'X User'}
+                </span>
               </div>
               <span className="text-xs text-neutral-500">
                 {item.date_published ? formatDistanceToNow(new Date(item.date_published), { addSuffix: true }) : ''}

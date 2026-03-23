@@ -65,6 +65,7 @@ export default function FeedViewer({
         }
       } else {
         setSavedItems((prev) => [...prev, url]);
+        handleMarkAsSeen(url); // Auto-hide card on successful Raindrop save
       }
     } catch {
       alert('Failed to save link to Raindrop.');

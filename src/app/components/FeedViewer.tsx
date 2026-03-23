@@ -43,6 +43,12 @@ export default function FeedViewer({
     return item.authors?.[0]?.name || item.author?.name || 'X User';
   }
 
+  function cleanContentHtml(html: string) {
+    if (!html) return '';
+    // Strip Twitter embed footers inserted by RSS parsers
+    return html.replace(/<\/p>— ([\s\S]*?)<\/blockquote>/, '</p></blockquote>');
+  }
+
   // Parse Youtube Video ID from URL for iframe thumbnail embedding
   function extractYTImage(item: FeedItem) {
     const match = item.url.match(/(?:v=|youtu\.be\/|\/v\/|\/embed\/)([^&\n?#]+)/);
@@ -122,7 +128,7 @@ export default function FeedViewer({
             
             <div 
               className="text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap break-words [&>a]:text-blue-400 [&>img]:mt-4 [&>img]:rounded-xl [&>img]:border [&>img]:border-neutral-800"
-              dangerouslySetInnerHTML={{ __html: item.content_html || item.title }} 
+              dangerouslySetInnerHTML={{ __html: cleanContentHtml(item.content_html || item.title) }} 
             />
 
             {/* Render direct Images from Feed Item Nodes (common with RSS.app) */}

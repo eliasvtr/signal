@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import Script from 'next/script';
 
 type FeedItem = {
   id: string;
@@ -64,6 +65,15 @@ export default function FeedViewer({
 
   return (
     <div className="w-full">
+      <Script 
+        src="https://platform.twitter.com/widgets.js" 
+        strategy="afterInteractive" 
+        onLoad={() => {
+          if (typeof window !== 'undefined' && (window as any).twttr) {
+            (window as any).twttr.widgets.load();
+          }
+        }}
+      />
       {/* Scrollable Tabs */}
       <div className="flex overflow-x-auto gap-3 pb-6 border-b border-neutral-800 scrollbar-hide">
         <button 

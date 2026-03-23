@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus, Maximize2, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import Script from 'next/script';
 
 type FeedItem = {
   id: string;
@@ -27,6 +28,14 @@ export default function FeedViewer({
   xLists: { name: string, items: FeedItem[] }[] 
 }) {
   const [activeTab, setActiveTab] = useState('youtube');
+  const [activeTweet, setActiveTweet] = useState<FeedItem | null>(null);
+
+  useEffect(() => {
+    if (activeTweet && typeof window !== 'undefined' && (window as any).twttr) {
+      // Reload widgets specifically when a tweet modal is triggered
+      (window as any).twttr.widgets.load();
+    }
+  }, [activeTweet]);
 
   function saveToRaindrop(url: string, title: string) {
     // This will open Raindrop's add URL API hook or standard intent
@@ -58,6 +67,8 @@ export default function FeedViewer({
 
   return (
     <div className="w-full">
+      <Script src="https://platform.twitter.com/widgets.js" strategy="afterInteractive" />
+
       {/* Scrollable Tabs */}
       <div className="flex overflow-x-auto gap-3 pb-6 border-b border-neutral-800 scrollbar-hide">
         <button 
@@ -150,9 +161,14 @@ export default function FeedViewer({
             )}
 
             <div className="flex justify-between items-center mt-6 pt-4 border-t border-neutral-800/50">
-              <a href={item.url} target="_blank" rel="noreferrer" className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">
-                 <ExternalLink className="w-4 h-4 mr-1.5" /> View on X
-              </a>
+              <div className="flex items-center gap-1">
+                <a href={item.url} target="_blank" rel="noreferrer" className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -ml-2 rounded-lg hover:bg-neutral-900">
+                   <ExternalLink className="w-4 h-4 mr-1.5" /> View on X
+                </a>
+                <button onClick={() => setActiveTweet(item)} className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 rounded-lg hover:bg-neutral-900">
+                   <Maximize2 className="w-4 h-4 mr-1.5" /> Expand Layout
+                </button>
+              </div>
               <button onClick={() => saveToRaindrop(item.url, item.author?.name ? `Tweet by ${item.author.name}` : 'Saved Tweet')} className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900">
                  <BookmarkPlus className="w-4 h-4 mr-1.5" /> Raindrop
               </button>
@@ -168,6 +184,24 @@ export default function FeedViewer({
            <p className="text-center text-neutral-500 italic py-12">No recent posts matched on RSS.</p>
         )}
       </div>
+
+      {/* Pop-up Interactive Embed Modal */}
+      {activeTweet && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#1C1C1E] border border-neutral-800 rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto relative p-6 pt-12 shadow-2xl">
+            <button 
+              onClick={() => setActiveTweet(null)}
+              className="absolute top-4 right-4 text-neutral-500 hover:text-white transition-colors bg-black/50 hover:bg-black rounded-full p-2"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div 
+               className="w-full flex justify-center"
+               dangerouslySetInnerHTML={{ __html: (activeTweet.content_html || activeTweet.title).replace('class="twitter-tweet"', 'class="twitter-tweet" data-theme="dark"') }} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

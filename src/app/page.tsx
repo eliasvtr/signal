@@ -3,6 +3,7 @@ import { db } from '../db';
 import { feeds } from '../db/schema';
 import { Settings } from 'lucide-react';
 import FeedViewer from './components/FeedViewer';
+import Script from 'next/script';
 
 // Fetch helper - defaults to Railway Bridge instance
 const BRIDGE_URL = process.env.RSS_BRIDGE_URL || 'https://rss-bridge-production-2c70.up.railway.app';
@@ -85,6 +86,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-[100dvh] bg-black text-white flex flex-col pt-12 px-5 font-sans pb-20 selection:bg-neutral-800">
+      <Script src="https://platform.twitter.com/widgets.js" strategy="lazyOnload" />
       <div className="max-w-xl mx-auto w-full">
         <header className="flex justify-between items-center mb-10 pb-4">
           <h1 className="text-2xl font-light tracking-wide text-white">S I G N A L</h1>

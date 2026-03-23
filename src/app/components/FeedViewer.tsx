@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -27,6 +27,12 @@ export default function FeedViewer({
   xLists: { name: string, items: FeedItem[] }[] 
 }) {
   const [activeTab, setActiveTab] = useState('youtube');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).twttr) {
+      (window as any).twttr.widgets.load();
+    }
+  }, [activeTab, xLists]);
 
   function saveToRaindrop(url: string, title: string) {
     // This will open Raindrop's add URL API hook or standard intent

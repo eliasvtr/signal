@@ -6,7 +6,8 @@ import FeedViewer from './components/FeedViewer';
 import Script from 'next/script';
 
 // Fetch helper - defaults to Railway Bridge instance
-const BRIDGE_URL = process.env.RSS_BRIDGE_URL || 'https://rss-bridge.org/bridge01/';
+const rawBridge = process.env.RSS_BRIDGE_URL || 'https://rss-bridge.org/bridge01/';
+const BRIDGE_URL = rawBridge.startsWith('http') ? rawBridge : `https://${rawBridge}`;
 
 async function fetchAllFeedsData() {
   const allFeeds = await db.select().from(feeds);

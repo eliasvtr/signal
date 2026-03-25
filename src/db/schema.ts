@@ -13,3 +13,11 @@ export const seenItems = pgTable('seen_items', {
   itemUrl: text('item_url').notNull().unique(), // Unique identifier for the item (e.g. tweet/video link)
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const watchlistItems = pgTable('watchlist_items', {
+  id: serial('id').primaryKey(),
+  itemUrl: text('item_url').notNull().unique(),
+  data: text('data').notNull(), // JSON stringified FeedItem
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+

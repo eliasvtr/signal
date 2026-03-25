@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlayCircle, MessageCircle, ExternalLink, BookmarkPlus, Maximize2, X, CheckCircle2 } from 'lucide-react';
+import { PlayCircle, MessageCircle, ExternalLink, Bookmark, BookmarkPlus, Library, Maximize2, X, CheckCircle2 } from 'lucide-react';
+
 import { formatDistanceToNow } from 'date-fns';
-import { markAsSeen } from '../actions/feeds';
+import { markAsSeen, addToWatchlist } from '../actions/feeds';
 import { saveToRaindropAction } from '../actions/raindrop';
 import Script from 'next/script';
 
@@ -35,6 +36,7 @@ export default function FeedViewer({
   const [playingYtVideo, setPlayingYtVideo] = useState<string | null>(null);
   const [savingItemUrl, setSavingItemUrl] = useState<string | null>(null);
   const [savedItems, setSavedItems] = useState<string[]>([]);
+  const [watchlistedItems, setWatchlistedItems] = useState<string[]>([]);
 
   useEffect(() => {
     if (activeTweet && typeof window !== 'undefined' && (window as any).twttr) {
@@ -71,6 +73,18 @@ export default function FeedViewer({
       alert('Failed to save link to Raindrop.');
     } finally {
       setSavingItemUrl(null);
+    }
+  }
+
+  async function handleAddToWatchlist(item: FeedItem) {
+    if (watchlistedItems.includes(item.url)) return;
+    setWatchlistedItems((prev) => [...prev, item.url]);
+    const res = await addToWatchlist(item);
+    if (res.success) {
+      handleMarkAsSeen(item.url); // Auto-hide from timeline
+    } else {
+      alert('Failed to add to watchlist');
+      setWatchlistedItems((prev) => prev.filter(u => u !== item.url));
     }
   }
 
@@ -174,12 +188,12 @@ export default function FeedViewer({
                  <CheckCircle2 className="w-4 h-4 mr-1.5" /> Mark Seen
               </button>
               <button 
-                onClick={() => saveToRaindrop(item.url, item.title)} 
-                disabled={savingItemUrl === item.url || savedItems.includes(item.url)}
-                className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900 disabled:text-green-500"
+                onClick={() => handleAddToWatchlist(item)} 
+                disabled={watchlistedItems.includes(item.url)}
+                className="text-neutral-500 hover:text-white flex items-center text-xs transition-colors p-2 -mr-2 rounded-lg hover:bg-neutral-900 disabled:text-blue-500"
               >
-                 <BookmarkPlus className="w-4 h-4 mr-1.5" /> 
-                 {savingItemUrl === item.url ? 'Saving...' : savedItems.includes(item.url) ? 'Saved!' : 'Raindrop'}
+                 <Library className="w-4 h-4 mr-1.5" /> 
+                 {watchlistedItems.includes(item.url) ? 'Watchlisted' : 'Watchlist'}
               </button>
             </div>
           </article>

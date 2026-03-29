@@ -95,7 +95,7 @@ export default async function Home() {
     <div className="min-h-[100dvh] bg-black text-white flex flex-col pt-12 px-5 font-sans pb-20 selection:bg-neutral-800">
       <div className="max-w-xl md:max-w-4xl mx-auto w-full transition-all">
         <header className="flex justify-between items-center mb-10 pb-4">
-          <h1 className="text-2xl font-light tracking-wide text-white">S I G N A L</h1>
+          <h1 className="text-2xl font-light tracking-wide text-white">S I G N A L &nbsp; V 1</h1>
           <div className="flex items-center gap-2">
             <Link href="/watchlist" className="text-neutral-500 hover:text-white transition-colors bg-neutral-900 border border-neutral-800 p-2 rounded-full">
               <Library className="w-4 h-4" />
